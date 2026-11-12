@@ -47,6 +47,10 @@ dist-ssr/
 *.local
 .vercel/
 
+# Technical Documentation Deliverables (Personal knowledge / local only)
+project_documentation/College_Issue_Management_System_Technical_Documentation.*
+project_documentation/build_full_technical_doc.py
+
 # Logs
 *.log
 npm-debug.log*
