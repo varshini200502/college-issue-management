@@ -219,6 +219,8 @@ def list_tickets(
     # 1. RBAC Scope Enforcement
     if role_name == "reporter":
         query = query.filter(Ticket.reporter_id == current_user.id)
+        # Demo isolation: reporter can only see tickets matching their own is_demo flag
+        query = query.filter(Ticket.is_demo == current_user.is_demo)
     elif role_name == "department_admin":
         if not current_user.department_id:
             raise HTTPException(
@@ -226,12 +228,15 @@ def list_tickets(
                 detail="Department admin account has no department assigned."
             )
         query = query.filter(Ticket.department_id == current_user.department_id)
+        # Demo isolation: dept admin only sees tickets matching their own is_demo flag
+        query = query.filter(Ticket.is_demo == current_user.is_demo)
     elif role_name == "principal":
         # Principal can view all, or choose to filter by department
         if department_id:
             query = query.filter(Ticket.department_id == department_id)
     else:
         query = query.filter(Ticket.reporter_id == current_user.id)
+        query = query.filter(Ticket.is_demo == current_user.is_demo)
 
     # 2. Filters
     if search:

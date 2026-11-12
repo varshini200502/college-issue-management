@@ -94,6 +94,7 @@ class User(Base):
     department_id = Column(Integer, ForeignKey("departments.id", ondelete="SET NULL"), nullable=True, index=True)
     phone = Column(String(30), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
+    is_demo = Column(Boolean, default=False, nullable=False, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
@@ -119,6 +120,7 @@ class Ticket(Base):
 
     priority = Column(String(20), default=PriorityEnum.MEDIUM.value, nullable=False, index=True)
     status = Column(String(30), default=TicketStatusEnum.NEW.value, nullable=False, index=True)
+    is_demo = Column(Boolean, default=False, nullable=False, index=True)
 
     resolution_notes = Column(Text, nullable=True)
     hold_reason = Column(Text, nullable=True)

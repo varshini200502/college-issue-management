@@ -40,19 +40,24 @@ class CollegeIssueManagementDirectTests(unittest.TestCase):
     def test_01_sample_user_credentials(self):
         """Verify all mandatory sample accounts exist with valid password hashing."""
         sample_accounts = [
-            ("principal@college.edu", "Admin@123", "principal"),
-            ("it.admin@college.edu", "Admin@123", "department_admin"),
-            ("finance.admin@college.edu", "Admin@123", "department_admin"),
-            ("infra.admin@college.edu", "Admin@123", "department_admin"),
-            ("student.alex@college.edu", "Student@123", "reporter"),
-            ("faculty.sarah@college.edu", "Faculty@123", "reporter"),
-            ("staff.david@college.edu", "Staff@123", "reporter")
+            ("principal@college.edu", ["Demo_Principal@2026", "Admin@123"], "principal"),
+            ("it.admin@college.edu", ["Demo_IT@2026", "Admin@123"], "department_admin"),
+            ("finance.admin@college.edu", ["Demo_Fin@2026", "Admin@123"], "department_admin"),
+            ("hr.admin@college.edu", ["Demo_HR@2026", "Admin@123"], "department_admin"),
+            ("infra.admin@college.edu", ["Demo_Infra@2026", "Admin@123"], "department_admin"),
+            ("academics.admin@college.edu", ["Demo_Acad@2026", "Admin@123"], "department_admin"),
+            ("library.admin@college.edu", ["Demo_Lib@2026", "Admin@123"], "department_admin"),
+            ("hostel.admin@college.edu", ["Demo_Hostel@2026", "Admin@123"], "department_admin"),
+            ("transport.admin@college.edu", ["Demo_Trans@2026", "Admin@123"], "department_admin"),
+            ("student.alex@college.edu", ["Demo_Student@2026", "Student@123"], "reporter"),
+            ("faculty.sarah@college.edu", ["Demo_Faculty@2026", "Faculty@123"], "reporter"),
+            ("staff.david@college.edu", ["Demo_Staff@2026", "Staff@123"], "reporter")
         ]
 
-        for email, pwd, expected_role in sample_accounts:
+        for email, pwds, expected_role in sample_accounts:
             user = self.db.query(User).filter(User.email == email).first()
             self.assertIsNotNone(user, f"User {email} must exist in seed data")
-            self.assertTrue(verify_password(pwd, user.hashed_password), f"Password verification failed for {email}")
+            self.assertTrue(any(verify_password(p, user.hashed_password) for p in pwds), f"Password verification failed for {email}")
             self.assertEqual(user.role.name, expected_role)
 
         # Negative test: invalid password

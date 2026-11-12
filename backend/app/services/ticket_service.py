@@ -107,7 +107,8 @@ def create_ticket(db: Session, reporter: User, ticket_in: TicketCreate) -> Ticke
         category_id=category.id,
         subcategory_id=ticket_in.subcategory_id,
         priority=ticket_in.priority.upper() if ticket_in.priority else PriorityEnum.MEDIUM.value,
-        status=TicketStatusEnum.NEW.value
+        status=TicketStatusEnum.NEW.value,
+        is_demo=getattr(reporter, 'is_demo', False)  # Inherit demo flag from reporter
     )
     db.add(new_ticket)
     db.commit()

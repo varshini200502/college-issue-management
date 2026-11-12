@@ -17,6 +17,13 @@ class LoginRequest(BaseModel):
     email: str = Field(..., min_length=3)
     password: str = Field(..., min_length=1)
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(..., min_length=1)
+    new_password: str = Field(..., min_length=8)
+
+class PasswordResetRequest(BaseModel):
+    new_password: str = Field(..., min_length=8)
+
 # --- Role & Department ---
 class RoleResponse(BaseModel):
     id: int
@@ -103,10 +110,43 @@ class UserResponse(UserBase):
     role: RoleResponse
     department: Optional[DepartmentResponse] = None
     is_active: bool
+    is_demo: bool = False
     created_at: datetime
 
     class Config:
         from_attributes = True
+
+class UserManagementCreate(BaseModel):
+    email: str = Field(..., min_length=3)
+    full_name: str
+    password: str = Field(..., min_length=8)
+    role_name: str = Field(..., description="reporter | department_admin | principal")
+    reporter_type: Optional[str] = None  # student | faculty | staff
+    department_id: Optional[int] = None
+    phone: Optional[str] = None
+    is_demo: bool = False
+
+class UserManagementResponse(BaseModel):
+    id: int
+    email: str
+    full_name: str
+    phone: Optional[str] = None
+    reporter_type: Optional[str] = None
+    role: RoleResponse
+    department: Optional[DepartmentResponse] = None
+    is_active: bool
+    is_demo: bool = False
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class UserListResponse(BaseModel):
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+    items: List[UserManagementResponse]
 
 # --- Ticket Comment ---
 class CommentCreate(BaseModel):

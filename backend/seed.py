@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timezone, timedelta
 from app.core.database import SessionLocal, Base, engine
-from app.core.security import get_password_hash
+from app.core.security import get_password_hash, verify_password
 from app.models.models import (
     Role, Department, Category, Subcategory, User, Ticket,
     TicketComment, TicketStatusHistory, TicketJustification,
@@ -119,102 +119,152 @@ def seed_database():
         category_objects[cat_name] = c
     print(f"[*] Categories verified: {len(category_objects)} categories")
 
-    # 4. Create Standard Master Users
-    # In production, specify strong initial passwords via DEFAULT_ADMIN_PASSWORD and DEFAULT_STUDENT_PASSWORD
-    admin_seed_pwd = os.getenv("DEFAULT_ADMIN_PASSWORD", "Admin@123")
-    student_seed_pwd = os.getenv("DEFAULT_STUDENT_PASSWORD", "Student@123")
-    faculty_seed_pwd = os.getenv("DEFAULT_FACULTY_PASSWORD", "Faculty@123")
-    staff_seed_pwd = os.getenv("DEFAULT_STAFF_PASSWORD", "Staff@123")
+    # 4. Demo passwords — env-var overridable, with secure unique defaults per tier
+    demo_passwords = {
+        "student":       os.getenv("DEMO_STUDENT_PASSWORD",  "Demo_Student@2026"),
+        "faculty":       os.getenv("DEMO_FACULTY_PASSWORD",  "Demo_Faculty@2026"),
+        "staff":         os.getenv("DEMO_STAFF_PASSWORD",    "Demo_Staff@2026"),
+        "it_admin":      os.getenv("DEMO_IT_PASSWORD",       "Demo_IT@2026"),
+        "fin_admin":     os.getenv("DEMO_FIN_PASSWORD",      "Demo_Fin@2026"),
+        "hr_admin":      os.getenv("DEMO_HR_PASSWORD",       "Demo_HR@2026"),
+        "infra_admin":   os.getenv("DEMO_INFRA_PASSWORD",    "Demo_Infra@2026"),
+        "acad_admin":    os.getenv("DEMO_ACAD_PASSWORD",     "Demo_Acad@2026"),
+        "lib_admin":     os.getenv("DEMO_LIB_PASSWORD",      "Demo_Lib@2026"),
+        "hostel_admin":  os.getenv("DEMO_HOSTEL_PASSWORD",   "Demo_Hostel@2026"),
+        "trans_admin":   os.getenv("DEMO_TRANS_PASSWORD",    "Demo_Trans@2026"),
+        "principal":     os.getenv("DEMO_PRINCIPAL_PASSWORD","Demo_Principal@2026"),
+    }
 
-    default_users = [
-        # Principal (College-wide Supervisor)
+    # 5. All 12 demo accounts — idempotent (check by email, never overwrite)
+    demo_users_data = [
+        # Principal
         {
             "email": "principal@college.edu",
             "full_name": "Dr. Arthur Pendelton",
-            "password": admin_seed_pwd,
+            "password": demo_passwords["principal"],
             "role": "principal",
             "reporter_type": None,
             "dept_code": None,
-            "phone": "+1 (555) 010-0001"
+            "phone": "+1 (555) 010-0001",
+            "is_demo": True,
         },
         # Department Admins
         {
             "email": "it.admin@college.edu",
             "full_name": "Rajesh Sharma",
-            "password": admin_seed_pwd,
+            "password": demo_passwords["it_admin"],
             "role": "department_admin",
             "reporter_type": None,
             "dept_code": "IT",
-            "phone": "+1 (555) 010-0010"
+            "phone": "+1 (555) 010-0010",
+            "is_demo": True,
         },
         {
             "email": "finance.admin@college.edu",
             "full_name": "Priya Sundaram",
-            "password": admin_seed_pwd,
+            "password": demo_passwords["fin_admin"],
             "role": "department_admin",
             "reporter_type": None,
             "dept_code": "FIN",
-            "phone": "+1 (555) 010-0020"
+            "phone": "+1 (555) 010-0020",
+            "is_demo": True,
+        },
+        {
+            "email": "hr.admin@college.edu",
+            "full_name": "Anita Desai",
+            "password": demo_passwords["hr_admin"],
+            "role": "department_admin",
+            "reporter_type": None,
+            "dept_code": "HR",
+            "phone": "+1 (555) 010-0025",
+            "is_demo": True,
         },
         {
             "email": "infra.admin@college.edu",
             "full_name": "Vikram Singh",
-            "password": admin_seed_pwd,
+            "password": demo_passwords["infra_admin"],
             "role": "department_admin",
             "reporter_type": None,
             "dept_code": "INFRA",
-            "phone": "+1 (555) 010-0030"
+            "phone": "+1 (555) 010-0030",
+            "is_demo": True,
         },
         {
             "email": "academics.admin@college.edu",
             "full_name": "Dr. Meenakshi Iyer",
-            "password": admin_seed_pwd,
+            "password": demo_passwords["acad_admin"],
             "role": "department_admin",
             "reporter_type": None,
             "dept_code": "ACAD",
-            "phone": "+1 (555) 010-0040"
+            "phone": "+1 (555) 010-0040",
+            "is_demo": True,
+        },
+        {
+            "email": "library.admin@college.edu",
+            "full_name": "Suresh Raman",
+            "password": demo_passwords["lib_admin"],
+            "role": "department_admin",
+            "reporter_type": None,
+            "dept_code": "LIB",
+            "phone": "+1 (555) 010-0045",
+            "is_demo": True,
         },
         {
             "email": "hostel.admin@college.edu",
             "full_name": "Rakesh Verma",
-            "password": admin_seed_pwd,
+            "password": demo_passwords["hostel_admin"],
             "role": "department_admin",
             "reporter_type": None,
             "dept_code": "HOSTEL",
-            "phone": "+1 (555) 010-0050"
+            "phone": "+1 (555) 010-0050",
+            "is_demo": True,
+        },
+        {
+            "email": "transport.admin@college.edu",
+            "full_name": "Gopal Krishnan",
+            "password": demo_passwords["trans_admin"],
+            "role": "department_admin",
+            "reporter_type": None,
+            "dept_code": "TRANS",
+            "phone": "+1 (555) 010-0055",
+            "is_demo": True,
         },
         # Reporters
         {
             "email": "student.alex@college.edu",
             "full_name": "Alex Rivera",
-            "password": student_seed_pwd,
+            "password": demo_passwords["student"],
             "role": "reporter",
             "reporter_type": "student",
             "dept_code": None,
-            "phone": "+1 (555) 010-0101"
+            "phone": "+1 (555) 010-0101",
+            "is_demo": True,
         },
         {
             "email": "faculty.sarah@college.edu",
             "full_name": "Prof. Sarah Jenkins",
-            "password": faculty_seed_pwd,
+            "password": demo_passwords["faculty"],
             "role": "reporter",
             "reporter_type": "faculty",
             "dept_code": None,
-            "phone": "+1 (555) 010-0202"
+            "phone": "+1 (555) 010-0202",
+            "is_demo": True,
         },
         {
             "email": "staff.david@college.edu",
             "full_name": "David Miller",
-            "password": staff_seed_pwd,
+            "password": demo_passwords["staff"],
             "role": "reporter",
             "reporter_type": "staff",
             "dept_code": None,
-            "phone": "+1 (555) 010-0303"
-        }
+            "phone": "+1 (555) 010-0303",
+            "is_demo": True,
+        },
     ]
 
     created_users = {}
-    for udata in default_users:
+    new_count = 0
+    for udata in demo_users_data:
         u = db.query(User).filter(User.email == udata["email"]).first()
         dept_id = departments[udata["dept_code"]].id if udata["dept_code"] else None
         if not u:
@@ -226,138 +276,163 @@ def seed_database():
                 reporter_type=udata["reporter_type"],
                 department_id=dept_id,
                 phone=udata["phone"],
-                is_active=True
+                is_active=True,
+                is_demo=udata["is_demo"],
             )
             db.add(u)
             db.commit()
             db.refresh(u)
+            new_count += 1
+        else:
+            # Upgrade legacy shared placeholder credentials to unique persona demo credentials
+            legacy_defaults = ["Admin@123", "Student@123", "Faculty@123", "Staff@123"]
+            if any(verify_password(old_p, u.hashed_password) for old_p in legacy_defaults):
+                u.hashed_password = get_password_hash(udata["password"])
+            if not u.is_demo:
+                u.is_demo = True
+            db.commit()
+            db.refresh(u)
         created_users[udata["email"]] = u
-    print(f"[*] Verified {len(created_users)} seed users.")
 
-    # 5. Populate Initial Sample Tickets (Only if explicitly enabled via SEED_SAMPLE_TICKETS=true)
+    print(f"[*] Demo users verified: {len(created_users)} total ({new_count} newly created)")
+
+    # 6. Demo Seed Tickets (only if explicitly enabled via SEED_SAMPLE_TICKETS=true)
     seed_tickets = os.getenv("SEED_SAMPLE_TICKETS", "false").lower() == "true"
     if not seed_tickets:
-        print("[*] Skipping sample ticket generation: Database configured for essential master data and login accounts only.")
+        print("[*] Skipping sample ticket generation: Set SEED_SAMPLE_TICKETS=true to seed demo tickets.")
     else:
         now = datetime.now(timezone.utc)
-        alex = created_users["student.alex@college.edu"]
+        alex  = created_users["student.alex@college.edu"]
         sarah = created_users["faculty.sarah@college.edu"]
-        it_admin = created_users["it.admin@college.edu"]
+        david = created_users["staff.david@college.edu"]
+        it_admin  = created_users["it.admin@college.edu"]
         fin_admin = created_users["finance.admin@college.edu"]
 
-        wifi_cat = db.query(Category).filter(Category.name == "Wi-Fi / Internet").first()
-        fee_cat = db.query(Category).filter(Category.name == "Fee Payment").first()
+        wifi_cat   = db.query(Category).filter(Category.name == "Wi-Fi / Internet").first()
+        fee_cat    = db.query(Category).filter(Category.name == "Fee Payment").first()
+        acad_cat   = db.query(Category).filter(Category.name == "Academic Records").first()
+        infra_cat  = db.query(Category).filter(Category.name == "Electrical Issues").first()
+        hostel_cat = db.query(Category).filter(Category.name == "Hostel Facilities").first()
 
-        # Ticket 1: Exactly ONE IT ticket with status IN_PROGRESS
-        t1 = db.query(Ticket).filter(Ticket.ticket_number == "COL-2026-0001").first()
-        if not t1:
-            t1_created = now - timedelta(days=2)
-            t1 = Ticket(
-                ticket_number="COL-2026-0001",
-                title="Library 2nd Floor High Density Wi-Fi AP Dropping Packets",
-                description="During peak study hours (2 PM to 5 PM), the Aruba AP near the reference section experiences 40% packet drops, preventing access to the digital catalog.",
-                reporter_id=alex.id,
-                category_id=wifi_cat.id,
-                department_id=wifi_cat.department_id,
-                priority=PriorityEnum.HIGH.value,
-                status=TicketStatusEnum.IN_PROGRESS.value,
-                created_at=t1_created,
-                updated_at=now - timedelta(hours=3)
+        demo_tickets = [
+            {
+                "number": "DEMO-2026-0001",
+                "title": "Library 2nd Floor Wi-Fi AP Dropping Packets During Peak Hours",
+                "description": "During peak study hours (2 PM to 5 PM), the Aruba AP near the reference section experiences 40% packet drops, preventing access to the digital catalog.",
+                "reporter": alex,
+                "category": wifi_cat,
+                "priority": PriorityEnum.HIGH.value,
+                "status": TicketStatusEnum.IN_PROGRESS.value,
+                "created_offset_days": 2,
+                "admin": it_admin,
+                "admin_comment": "Field diagnostics in progress: Signal attenuation detected on PoE switch port 18. Testing replacement CAT6 patch lead.",
+            },
+            {
+                "number": "DEMO-2026-0002",
+                "title": "Online Semester 4 Fee Payment Deducted but Portal Shows Pending",
+                "description": "Online payment gateway debited $1,250 from student bank account, but college ERP portal shows payment pending with clearance hold.",
+                "reporter": sarah,
+                "category": fee_cat,
+                "priority": PriorityEnum.MEDIUM.value,
+                "status": TicketStatusEnum.RESOLVED.value,
+                "created_offset_days": 5,
+                "admin": fin_admin,
+                "resolution_notes": "Verified HDFC gateway reconciliation reference #TXN984210. Payment settled, clearance receipt issued.",
+                "admin_comment": "Payment settled with merchant ID #HDFC-COL-9842. Clearance hold lifted, digital fee receipt available.",
+            },
+            {
+                "number": "DEMO-2026-0003",
+                "title": "Attendance Percentage Incorrectly Calculated for Elective Subject",
+                "description": "The student portal shows 68% attendance for the Advanced Algorithms elective, but actual class records confirm 82% physical attendance for this semester.",
+                "reporter": alex,
+                "category": acad_cat,
+                "priority": PriorityEnum.MEDIUM.value,
+                "status": TicketStatusEnum.NEW.value,
+                "created_offset_days": 1,
+                "admin": None,
+            },
+            {
+                "number": "DEMO-2026-0004",
+                "title": "Lab Block B Air Conditioner Not Cooling — Exam Preparation Room",
+                "description": "The 2-ton AC unit in Lab Block B Room 204, which is designated for exam preparation sessions, has stopped cooling. Temperature inside is 36°C affecting student health.",
+                "reporter": david,
+                "category": infra_cat,
+                "priority": PriorityEnum.CRITICAL.value,
+                "status": TicketStatusEnum.ASSIGNED.value,
+                "created_offset_days": 3,
+                "admin": None,
+            },
+            {
+                "number": "DEMO-2026-0005",
+                "title": "Hostel Block C Geyser Not Heating Water — 12 Rooms Affected",
+                "description": "The water heating system for Hostel Block C (rooms 301-312) has completely stopped working since Monday morning. Cold showers in winter are causing student health concerns.",
+                "reporter": sarah,
+                "category": hostel_cat,
+                "priority": PriorityEnum.HIGH.value,
+                "status": TicketStatusEnum.ON_HOLD.value,
+                "created_offset_days": 4,
+                "admin": None,
+                "hold_reason": "Waiting for replacement heating element from vendor. ETA: 48 hours.",
+            },
+        ]
+
+        for td in demo_tickets:
+            existing = db.query(Ticket).filter(Ticket.ticket_number == td["number"]).first()
+            if existing:
+                print(f"[*] Demo ticket {td['number']} already exists, skipping.")
+                continue
+
+            if not td["category"]:
+                print(f"[!] Skipping demo ticket {td['number']}: category not found.")
+                continue
+
+            created_at = now - timedelta(days=td["created_offset_days"])
+            resolved_at = now - timedelta(days=td["created_offset_days"] - 2) if td["status"] == TicketStatusEnum.RESOLVED.value else None
+
+            t = Ticket(
+                ticket_number=td["number"],
+                title=td["title"],
+                description=td["description"],
+                reporter_id=td["reporter"].id,
+                category_id=td["category"].id,
+                department_id=td["category"].department_id,
+                priority=td["priority"],
+                status=td["status"],
+                resolution_notes=td.get("resolution_notes"),
+                hold_reason=td.get("hold_reason"),
+                resolved_at=resolved_at,
+                created_at=created_at,
+                updated_at=now - timedelta(hours=1),
+                is_demo=True,
             )
-            db.add(t1)
+            db.add(t)
             db.commit()
-            db.refresh(t1)
+            db.refresh(t)
 
-            # Status history for t1
+            # Initial status history
             db.add(TicketStatusHistory(
-                ticket_id=t1.id,
-                changed_by_id=alex.id,
+                ticket_id=t.id,
+                changed_by_id=td["reporter"].id,
                 from_status=None,
                 to_status=TicketStatusEnum.NEW.value,
-                note="Submitted by Alex Rivera and routed to IT Administration.",
-                created_at=t1_created
-            ))
-            db.add(TicketStatusHistory(
-                ticket_id=t1.id,
-                changed_by_id=it_admin.id,
-                from_status=TicketStatusEnum.NEW.value,
-                to_status=TicketStatusEnum.IN_PROGRESS.value,
-                note="Investigation started by Rajesh Sharma. Inspecting PoE switch port and antenna signal attenuation.",
-                created_at=t1_created + timedelta(hours=4)
-            ))
-            db.add(TicketComment(
-                ticket_id=t1.id,
-                user_id=it_admin.id,
-                comment_text="Field diagnostics in progress: Signal attenuation detected on PoE switch port 18. Testing replacement CAT6 patch lead.",
-                is_internal=False,
-                is_info_request=False,
-                created_at=t1_created + timedelta(hours=5)
+                note=f"Ticket submitted and routed to department.",
+                created_at=created_at,
             ))
             db.commit()
-            print("[*] Sample IT ticket (IN_PROGRESS) seeded: COL-2026-0001")
-        else:
-            print("[*] Sample IT ticket COL-2026-0001 already exists.")
 
-        # Ticket 2: Exactly ONE Finance ticket with status RESOLVED
-        t2 = db.query(Ticket).filter(Ticket.ticket_number == "COL-2026-0002").first()
-        if not t2:
-            t2_created = now - timedelta(days=4)
-            t2_resolved = now - timedelta(days=2)
-            t2 = Ticket(
-                ticket_number="COL-2026-0002",
-                title="Online Semester 4 Tuition Fee Payment Deduction Discrepancy",
-                description="Online payment gateway debited $1,250 from student bank account, but college ERP portal showed payment pending and clearance hold.",
-                reporter_id=sarah.id,
-                category_id=fee_cat.id,
-                department_id=fee_cat.department_id,
-                priority=PriorityEnum.MEDIUM.value,
-                status=TicketStatusEnum.RESOLVED.value,
-                resolution_notes="Verified HDFC gateway reconciliation reference #TXN984210. Gateway payment settled successfully. Account credited in college ERP ledger, clearance hold lifted, and official receipt generated.",
-                resolved_at=t2_resolved,
-                created_at=t2_created,
-                updated_at=t2_resolved
-            )
-            db.add(t2)
-            db.commit()
-            db.refresh(t2)
+            # Admin comment if present
+            if td.get("admin") and td.get("admin_comment"):
+                db.add(TicketComment(
+                    ticket_id=t.id,
+                    user_id=td["admin"].id,
+                    comment_text=td["admin_comment"],
+                    is_internal=False,
+                    is_info_request=False,
+                    created_at=created_at + timedelta(hours=5),
+                ))
+                db.commit()
 
-            # Status history for t2
-            db.add(TicketStatusHistory(
-                ticket_id=t2.id,
-                changed_by_id=sarah.id,
-                from_status=None,
-                to_status=TicketStatusEnum.NEW.value,
-                note="Submitted and routed to Finance department.",
-                created_at=t2_created
-            ))
-            db.add(TicketStatusHistory(
-                ticket_id=t2.id,
-                changed_by_id=fin_admin.id,
-                from_status=TicketStatusEnum.NEW.value,
-                to_status=TicketStatusEnum.IN_PROGRESS.value,
-                note="Finance officer Priya Sundaram initiated bank reconciliation with payment gateway merchant desk.",
-                created_at=t2_created + timedelta(hours=6)
-            ))
-            db.add(TicketStatusHistory(
-                ticket_id=t2.id,
-                changed_by_id=fin_admin.id,
-                from_status=TicketStatusEnum.IN_PROGRESS.value,
-                to_status=TicketStatusEnum.RESOLVED.value,
-                note="Verified HDFC gateway reconciliation reference #TXN984210. Account credited in ERP ledger and clearance receipt issued.",
-                created_at=t2_resolved
-            ))
-            db.add(TicketComment(
-                ticket_id=t2.id,
-                user_id=fin_admin.id,
-                comment_text="Payment settled with merchant ID #HDFC-COL-9842. The financial clearance hold has been lifted and digital fee receipt is now available in your portal.",
-                is_internal=False,
-                is_info_request=False,
-                created_at=t2_resolved
-            ))
-            db.commit()
-            print("[*] Sample Finance ticket (RESOLVED) seeded: COL-2026-0002")
-        else:
-            print("[*] Sample Finance ticket COL-2026-0002 already exists.")
+            print(f"[*] Demo ticket seeded: {td['number']} — {td['title'][:55]}...")
 
     db.close()
     print("[✔] Database initialization and seeding complete.")

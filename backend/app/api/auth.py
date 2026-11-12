@@ -8,7 +8,7 @@ from app.core.security import verify_password, get_password_hash, create_access_
 from app.core.dependencies import get_current_user
 from app.core.config import settings
 from app.models.models import User, Role, Department
-from app.schemas.schemas import UserCreate, UserResponse, Token, LoginRequest
+from app.schemas.schemas import UserCreate, UserResponse, Token, LoginRequest, ChangePasswordRequest
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -107,3 +107,19 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
 @router.get("/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)):
     return current_user
+
+@router.post("/change-password", status_code=200)
+def change_password(
+    req: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Allow any authenticated user to change their own password."""
+    if not verify_password(req.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect.",
+        )
+    current_user.hashed_password = get_password_hash(req.new_password)
+    db.commit()
+    return {"message": "Password changed successfully."}

@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
   LayoutDashboard, PlusCircle, Ticket, BarChart3, AlertOctagon, 
-  Building2, FileText, CheckCircle2, LifeBuoy
+  Building2, FileText, CheckCircle2, LifeBuoy, Users
 } from 'lucide-react';
 
 export const Sidebar = () => {
@@ -28,7 +28,8 @@ export const Sidebar = () => {
       { to: '/dashboard', label: 'Executive Dashboard', icon: LayoutDashboard },
       { to: '/tickets', label: 'College-wide Tickets', icon: Ticket },
       { to: '/departments-comparison', label: 'Department Comparison', icon: Building2 },
-      { to: '/unresolved-justifications', label: 'Unresolved Justifications', icon: AlertOctagon }
+      { to: '/unresolved-justifications', label: 'Unresolved Justifications', icon: AlertOctagon },
+      { to: '/principal/users', label: 'User Management', icon: Users }
     );
   }
 

@@ -1,21 +1,52 @@
 import { useState } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { Users, Shield, GraduationCap, Building2, Key, CheckCircle2, AlertCircle } from 'lucide-react'
 
-// Demo accounts are strictly for local development and disabled in production builds
-const isDevDemoEnabled = import.meta.env.DEV && import.meta.env.VITE_ENABLE_DEMO_ACCOUNTS === 'true'
+// Demo accounts panel is controlled via VITE_ENABLE_DEMO_ACCOUNTS
+const isDemoEnabled = import.meta.env.VITE_ENABLE_DEMO_ACCOUNTS === 'true'
 
-const DEMO_ACCOUNTS = isDevDemoEnabled
-  ? [
-      { role: 'Student Reporter', type: 'reporter', name: 'Alex Rivera', email: 'student.alex@college.edu', password: 'Student@123' },
-      { role: 'Faculty Reporter', type: 'reporter', name: 'Prof. Sarah Jenkins', email: 'faculty.sarah@college.edu', password: 'Faculty@123' },
-      { role: 'Staff Reporter', type: 'reporter', name: 'David Miller', email: 'staff.david@college.edu', password: 'Staff@123' },
-      { role: 'IT Admin', type: 'department_admin', name: 'Rajesh Sharma', email: 'it.admin@college.edu', password: 'Admin@123' },
-      { role: 'Finance Admin', type: 'department_admin', name: 'Priya Sundaram', email: 'finance.admin@college.edu', password: 'Admin@123' },
-      { role: 'Infra Admin', type: 'department_admin', name: 'Vikram Singh', email: 'infra.admin@college.edu', password: 'Admin@123' },
-      { role: 'Principal (Read-Only)', type: 'principal', name: 'Dr. Arthur Pendelton', email: 'principal@college.edu', password: 'Admin@123' },
+const DEMO_CATEGORIES = [
+  {
+    id: 'reporters',
+    title: 'Reporters',
+    icon: GraduationCap,
+    badgeColor: 'bg-blue-600',
+    description: 'Students, Faculty & Staff submitting facility and administrative grievances',
+    accounts: [
+      { role: 'Student Reporter', type: 'reporter', name: 'Alex Rivera', email: 'student.alex@college.edu', password: 'Demo_Student@2026', label: 'Student' },
+      { role: 'Faculty Reporter', type: 'reporter', name: 'Prof. Sarah Jenkins', email: 'faculty.sarah@college.edu', password: 'Demo_Faculty@2026', label: 'Faculty' },
+      { role: 'Staff Reporter', type: 'reporter', name: 'David Miller', email: 'staff.david@college.edu', password: 'Demo_Staff@2026', label: 'Staff' },
     ]
-  : []
+  },
+  {
+    id: 'admins',
+    title: 'Department Administrators',
+    icon: Building2,
+    badgeColor: 'bg-emerald-600',
+    description: 'Department officers managing resolution queues, status & justifications',
+    accounts: [
+      { role: 'IT Admin', type: 'department_admin', name: 'Rajesh Sharma', email: 'it.admin@college.edu', password: 'Demo_IT@2026', label: 'IT Administration' },
+      { role: 'Finance Admin', type: 'department_admin', name: 'Priya Sundaram', email: 'finance.admin@college.edu', password: 'Demo_Fin@2026', label: 'Finance' },
+      { role: 'HR Admin', type: 'department_admin', name: 'Anita Desai', email: 'hr.admin@college.edu', password: 'Demo_HR@2026', label: 'Human Resources' },
+      { role: 'Infra Admin', type: 'department_admin', name: 'Vikram Singh', email: 'infra.admin@college.edu', password: 'Demo_Infra@2026', label: 'Infrastructure' },
+      { role: 'Academics Admin', type: 'department_admin', name: 'Dr. Meenakshi Iyer', email: 'academics.admin@college.edu', password: 'Demo_Acad@2026', label: 'Academics' },
+      { role: 'Library Admin', type: 'department_admin', name: 'Suresh Raman', email: 'library.admin@college.edu', password: 'Demo_Lib@2026', label: 'Library' },
+      { role: 'Hostel Admin', type: 'department_admin', name: 'Rakesh Verma', email: 'hostel.admin@college.edu', password: 'Demo_Hostel@2026', label: 'Hostel' },
+      { role: 'Transport Admin', type: 'department_admin', name: 'Gopal Krishnan', email: 'transport.admin@college.edu', password: 'Demo_Trans@2026', label: 'Transport' },
+    ]
+  },
+  {
+    id: 'executive',
+    title: 'Executive',
+    icon: Shield,
+    badgeColor: 'bg-purple-600',
+    description: 'College-wide supervision, SLA compliance oversight & User Management',
+    accounts: [
+      { role: 'Principal (Executive)', type: 'principal', name: 'Dr. Arthur Pendelton', email: 'principal@college.edu', password: 'Demo_Principal@2026', label: 'Executive Office' },
+    ]
+  }
+]
 
 const ROLE_ROUTES = {
   reporter: '/reporter/dashboard',
@@ -37,14 +68,14 @@ const PORTAL_META = {
     badgeColor: 'bg-emerald-600',
   },
   principal: {
-    title: 'Principal Portal (Read-Only)',
-    subtitle: 'Institution-wide metrics, SLA compliance & escalation oversight',
+    title: 'Principal Portal (Supervisor & User Admin)',
+    subtitle: 'Institution-wide metrics, SLA oversight & user management',
     badge: 'Principal Access',
     badgeColor: 'bg-purple-600',
   },
   all: {
     title: 'Sign in to your account',
-    subtitle: 'Select your role or enter your credentials',
+    subtitle: 'Select your role or enter your institutional credentials',
     badge: 'Centralized Portal',
     badgeColor: 'bg-indigo-600',
   },
@@ -56,21 +87,23 @@ export default function Login({ roleHint }) {
   const { login } = useAuth()
 
   // Determine active portal mode from prop or path
-  let activeRole = roleHint
-  if (!activeRole) {
-    if (location.pathname.includes('/reporter')) activeRole = 'reporter'
-    else if (location.pathname.includes('/department') || location.pathname.includes('/dept')) activeRole = 'department_admin'
-    else if (location.pathname.includes('/principal')) activeRole = 'principal'
-    else activeRole = 'all'
+  let defaultPortal = roleHint
+  if (!defaultPortal) {
+    if (location.pathname.includes('/reporter')) defaultPortal = 'reporter'
+    else if (location.pathname.includes('/department') || location.pathname.includes('/dept')) defaultPortal = 'department_admin'
+    else if (location.pathname.includes('/principal')) defaultPortal = 'principal'
+    else defaultPortal = 'all'
   }
 
-  const meta = PORTAL_META[activeRole] || PORTAL_META.all
-
+  const [activePortal, setActivePortal] = useState(defaultPortal)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [demoOpen, setDemoOpen] = useState(false)
+  const [selectedDemo, setSelectedDemo] = useState(null)
+  const [activeDemoCategory, setActiveDemoCategory] = useState('reporters')
+
+  const meta = PORTAL_META[activePortal] || PORTAL_META.all
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -85,83 +118,85 @@ export default function Login({ roleHint }) {
       setError(
         err?.response?.data?.detail ||
           err?.message ||
-          'Invalid credentials. Please try again.'
+          'Invalid credentials. Please verify your email and password.'
       )
     } finally {
       setLoading(false)
     }
   }
 
-  const fillDemo = (account) => {
-    setEmail(account.email)
-    setPassword(account.password)
-    setDemoOpen(false)
+  const selectDemoAccount = (acc) => {
+    setEmail(acc.email)
+    setPassword(acc.password)
+    setActivePortal(acc.type)
+    setSelectedDemo(acc)
+    setError('')
   }
 
-  const filteredDemoAccounts = activeRole === 'all' 
-    ? DEMO_ACCOUNTS 
-    : DEMO_ACCOUNTS.filter(a => a.type === activeRole)
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-indigo-800 px-4 py-8">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900 px-4 py-8">
+      <div className="w-full max-w-xl">
         {/* Branding Header */}
         <div className="text-center mb-6">
           <div className="text-5xl mb-2 select-none">🎓</div>
           <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-            College Issue Management
+            College Issue Management System
           </h1>
           <p className="text-blue-200 mt-1 text-xs sm:text-sm">
-            Institutional grievance and facility tracking
+            Centralized Grievance Tracking, Resolution Workflow & Institutional Oversight
           </p>
         </div>
 
         {/* Portal Role Tabs */}
         <div className="flex bg-blue-950/60 p-1 rounded-xl mb-4 text-xs font-semibold backdrop-blur-sm border border-blue-800/50">
-          <Link
-            to="/login"
+          <button
+            type="button"
+            onClick={() => setActivePortal('all')}
             className={`flex-1 text-center py-2 rounded-lg transition-colors ${
-              activeRole === 'all'
+              activePortal === 'all'
                 ? 'bg-white text-indigo-900 shadow-sm'
                 : 'text-blue-200 hover:text-white'
             }`}
           >
             All Roles
-          </Link>
-          <Link
-            to="/login/reporter"
+          </button>
+          <button
+            type="button"
+            onClick={() => setActivePortal('reporter')}
             className={`flex-1 text-center py-2 rounded-lg transition-colors ${
-              activeRole === 'reporter'
+              activePortal === 'reporter'
                 ? 'bg-blue-600 text-white shadow-sm'
                 : 'text-blue-200 hover:text-white'
             }`}
           >
             Reporter
-          </Link>
-          <Link
-            to="/login/department"
+          </button>
+          <button
+            type="button"
+            onClick={() => setActivePortal('department_admin')}
             className={`flex-1 text-center py-2 rounded-lg transition-colors ${
-              activeRole === 'department_admin'
+              activePortal === 'department_admin'
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'text-blue-200 hover:text-white'
             }`}
           >
             Dept Admin
-          </Link>
-          <Link
-            to="/login/principal"
+          </button>
+          <button
+            type="button"
+            onClick={() => setActivePortal('principal')}
             className={`flex-1 text-center py-2 rounded-lg transition-colors ${
-              activeRole === 'principal'
+              activePortal === 'principal'
                 ? 'bg-purple-600 text-white shadow-sm'
                 : 'text-blue-200 hover:text-white'
             }`}
           >
             Principal
-          </Link>
+          </button>
         </div>
 
         {/* Login Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-slate-100">
+        <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 border border-slate-100">
           <div className="mb-6">
             <div className="flex items-center justify-between mb-1.5">
               <h2 className="text-lg font-bold text-slate-800">{meta.title}</h2>
@@ -172,9 +207,28 @@ export default function Login({ roleHint }) {
             <p className="text-xs text-slate-500">{meta.subtitle}</p>
           </div>
 
+          {selectedDemo && (
+            <div className="mb-4 p-3 bg-indigo-50 border border-indigo-200 rounded-xl flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-indigo-600 flex-shrink-0" />
+                <div>
+                  <span className="font-semibold text-indigo-950">Active Demo Account: </span>
+                  <span className="text-indigo-800">{selectedDemo.name} ({selectedDemo.role})</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setSelectedDemo(null); setEmail(''); setPassword(''); }}
+                className="text-[11px] text-indigo-600 hover:text-indigo-800 font-semibold"
+              >
+                Clear
+              </button>
+            </div>
+          )}
+
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-              <span className="text-red-500 mt-0.5">⚠️</span>
+              <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
               <p className="text-xs text-red-700">{error}</p>
             </div>
           )}
@@ -253,64 +307,95 @@ export default function Login({ roleHint }) {
             </button>
           </form>
 
-          {/* Demo Accounts Collapsible (Only rendered in local development when enabled) */}
-          {isDevDemoEnabled && filteredDemoAccounts.length > 0 && (
-            <div className="mt-5 border-t border-slate-100 pt-4">
-              <button
-                type="button"
-                onClick={() => setDemoOpen((o) => !o)}
-                className="flex items-center justify-between w-full text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
-              >
-                <span>🔑 Local Demo Accounts ({filteredDemoAccounts.length})</span>
-                <span className="text-[11px] text-slate-400">{demoOpen ? '▲ hide' : '▼ show'}</span>
-              </button>
-
-              {demoOpen && (
-                <div className="mt-3 overflow-x-auto max-h-56 overflow-y-auto border border-slate-100 rounded-lg">
-                  <table className="w-full text-left text-[11px]">
-                    <thead className="bg-slate-50 sticky top-0 border-b border-slate-100 text-slate-500">
-                      <tr>
-                        <th className="py-1.5 px-2 font-semibold">Role</th>
-                        <th className="py-1.5 px-2 font-semibold">Name</th>
-                        <th className="py-1.5 px-2 font-semibold">Email</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50">
-                      {filteredDemoAccounts.map((acc, i) => (
-                        <tr
-                          key={i}
-                          onClick={() => fillDemo(acc)}
-                          className="hover:bg-indigo-50 cursor-pointer transition-colors"
-                        >
-                          <td className="py-1.5 px-2">
-                            <span
-                              className={`px-1.5 py-0.5 rounded text-white text-[9px] font-bold ${
-                                acc.type === 'reporter'
-                                  ? 'bg-blue-600'
-                                  : acc.type === 'department_admin'
-                                  ? 'bg-emerald-600'
-                                  : 'bg-purple-600'
-                              }`}
-                            >
-                              {acc.role}
-                            </span>
-                          </td>
-                          <td className="py-1.5 px-2 text-slate-700 font-medium whitespace-nowrap">{acc.name}</td>
-                          <td className="py-1.5 px-2 text-slate-500 font-mono whitespace-nowrap">{acc.email}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  <p className="py-1.5 text-[10px] text-slate-400 text-center bg-slate-50 border-t border-slate-100">
-                    Click any row to auto-populate credentials
-                  </p>
+          {/* Evaluator Demo Experience */}
+          {isDemoEnabled && (
+            <div className="mt-6 border-t border-slate-100 pt-5">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                  <Key className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Try Demo Accounts – Explore the Application</span>
                 </div>
-              )}
+                <span className="text-[10px] font-semibold text-slate-400">12 Personas</span>
+              </div>
+
+              {/* Category Selector Tabs */}
+              <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-lg mb-3 text-[11px] font-medium">
+                {DEMO_CATEGORIES.map(cat => {
+                  const Icon = cat.icon
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setActiveDemoCategory(cat.id)}
+                      className={`py-1.5 px-2 rounded-md transition-all flex items-center justify-center gap-1.5 ${
+                        activeDemoCategory === cat.id
+                          ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      <Icon className="w-3 h-3" />
+                      <span className="truncate">{cat.title.split(' ')[0]}</span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Active Category Account List */}
+              {(() => {
+                const currentCat = DEMO_CATEGORIES.find(c => c.id === activeDemoCategory) || DEMO_CATEGORIES[0]
+                return (
+                  <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                    {currentCat.accounts.map((acc, idx) => {
+                      const isSelected = selectedDemo?.email === acc.email
+                      return (
+                        <div
+                          key={idx}
+                          onClick={() => selectDemoAccount(acc)}
+                          className={`p-2.5 rounded-xl border text-xs cursor-pointer transition-all flex items-center justify-between ${
+                            isSelected
+                              ? 'bg-indigo-50 border-indigo-300 ring-1 ring-indigo-200'
+                              : 'bg-slate-50 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
+                          }`}
+                        >
+                          <div className="min-w-0 pr-2">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-semibold text-slate-900 truncate">{acc.name}</span>
+                              <span className={`text-[9px] font-bold text-white px-1.5 py-0.2 rounded ${currentCat.badgeColor}`}>
+                                {acc.label}
+                              </span>
+                            </div>
+                            <div className="text-[11px] text-slate-500 font-mono truncate mt-0.5">{acc.email}</div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); selectDemoAccount(acc); }}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition-colors ${
+                              isSelected
+                                ? 'bg-indigo-600 text-white'
+                                : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                            }`}
+                          >
+                            {isSelected ? 'Selected' : 'Use Account'}
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })()}
+
+              {/* Mandatory Demo Disclaimer */}
+              <div className="mt-3.5 p-2.5 bg-amber-50 border border-amber-200/80 rounded-xl text-[11px] text-amber-800 leading-relaxed flex items-start gap-2">
+                <span className="text-amber-500 font-bold mt-0.5">ℹ</span>
+                <p>
+                  <strong>Demo Access:</strong> These accounts are provided for evaluation and testing purposes. Real college users must use their personal institutional credentials.
+                </p>
+              </div>
             </div>
           )}
         </div>
 
-        <p className="text-center text-blue-200 text-xs mt-5">
+        <p className="text-center text-blue-200/80 text-xs mt-5">
           Campus Issue & Ticket Management System • Institutional Access Only
         </p>
       </div>

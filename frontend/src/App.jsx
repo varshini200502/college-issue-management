@@ -21,6 +21,7 @@ import PrincipalDashboard from './pages/principal/PrincipalDashboard';
 import PrincipalTicketList from './pages/principal/PrincipalTicketList';
 import PrincipalTicketDetail from './pages/principal/PrincipalTicketDetail';
 import UnresolvedJustifications from './pages/principal/UnresolvedJustifications';
+import UserManagement from './pages/principal/UserManagement';
 
 // Role-protected route wrapper
 const ProtectedRoute = ({ allowedRoles, children }) => {
@@ -251,6 +252,18 @@ export default function App() {
         <Route
           path="/principal/departments-comparison"
           element={<Navigate to="/principal/dashboard" replace />}
+        />
+
+        {/* Principal: User Management */}
+        <Route
+          path="/principal/users"
+          element={
+            <ProtectedRoute allowedRoles={['principal']}>
+              <AuthenticatedLayout>
+                <UserManagement />
+              </AuthenticatedLayout>
+            </ProtectedRoute>
+          }
         />
 
         {/* Catch-all fallback */}
