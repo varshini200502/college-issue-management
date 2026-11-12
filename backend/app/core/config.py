@@ -51,6 +51,7 @@ class Settings:
     # CORS Configuration
     # Local dev defaults and Vercel production domains
     _default_origins = [
+        "https://college-issue-management-murex.vercel.app",
         "https://college-issue-management.vercel.app",
         "http://localhost:5174",
         "http://127.0.0.1:5174",

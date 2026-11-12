@@ -21,10 +21,11 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS Middleware configured from environment variables
+# CORS Middleware configured from environment variables and Vercel cloud domains
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.BACKEND_CORS_ORIGINS,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

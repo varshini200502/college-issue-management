@@ -33,6 +33,6 @@ services:
       - key: ALGORITHM
         value: HS256
       - key: CORS_ORIGINS
-        value: "https://college-issue-management.vercel.app,http://localhost:5174,http://localhost:5173"
+        value: "https://college-issue-management-murex.vercel.app,https://college-issue-management.vercel.app,http://localhost:5174,http://localhost:5173"
       - key: SEED_SAMPLE_TICKETS
         value: "true"

@@ -1,241 +1,251 @@
 # 🎓 Centralized College Issue and Ticket Management System
 
-An enterprise-grade, full-stack issue tracking and resolution management platform designed for educational institutions. The system enables students, faculty, and administrative staff to report college-related issues, routes tickets automatically to responsible departments via a database-driven category engine, maintains immutable audit trails, and delivers centralized real-time executive analytics to college leadership.
+[![Live Frontend](https://img.shields.io/badge/Vercel-Frontend%20Live-black?style=for-the-badge&logo=vercel)](https://college-issue-management-murex.vercel.app/login)
+[![Live API Backend](https://img.shields.io/badge/Render-FastAPI%20Backend-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://college-issue-backend-t72o.onrender.com/)
+[![Interactive Swagger Docs](https://img.shields.io/badge/Swagger-API%20Documentation-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)](https://college-issue-backend-t72o.onrender.com/docs)
+[![Database](https://img.shields.io/badge/PostgreSQL-Render%20Managed-blue?style=for-the-badge&logo=postgresql&logoColor=white)](https://college-issue-backend-t72o.onrender.com/health)
+
+A production-ready, full-stack enterprise issue tracking and resolution management platform designed specifically for higher educational institutions. The platform empowers students, faculty, and administrative staff to submit issues, routes tickets automatically to responsible department queues via a database-driven category engine, enforces strict Role-Based Access Control (RBAC), and delivers real-time executive analytics to college leadership.
 
 ---
 
-## 🏛️ System Overview
+## 🌐 Live Deployments
 
-In traditional college campuses, maintenance, administrative, and academic complaints are handled through fragmented emails, verbal requests, and paper forms—leading to forgotten issues, delayed responses, and zero institutional accountability.
+| Component | Service | URL | Status |
+|---|---|---|---|
+| **Production Web Application** | Vercel (React + Vite SPA) | [https://college-issue-management-murex.vercel.app](https://college-issue-management-murex.vercel.app/login) | ![Active](https://img.shields.io/badge/Status-Live-success) |
+| **REST API Backend** | Render (FastAPI + Uvicorn) | [https://college-issue-backend-t72o.onrender.com](https://college-issue-backend-t72o.onrender.com/) | ![Active](https://img.shields.io/badge/Status-Live-success) |
+| **Swagger Interactive Docs** | OpenAPI / Swagger UI | [https://college-issue-backend-t72o.onrender.com/docs](https://college-issue-backend-t72o.onrender.com/docs) | ![Active](https://img.shields.io/badge/Status-Live-success) |
+| **Health Check Endpoint** | Production DB & App Health | [https://college-issue-backend-t72o.onrender.com/health](https://college-issue-backend-t72o.onrender.com/health) | ![Active](https://img.shields.io/badge/Status-Healthy-success) |
 
-This application provides a **centralized, secure, and role-governed digital workflow**:
-1. **Automated Category Routing**: When a reporter selects an issue category (e.g. *Wi-Fi / Internet* or *Classroom Maintenance*), the system automatically routes the ticket to the responsible department queue (*IT Administration* or *Infrastructure and Maintenance*).
-2. **Transparent Ticket Lifecycle**: Full status management through `NEW`, `ASSIGNED`, `IN_PROGRESS`, `WAITING_FOR_INFO`, `ON_HOLD`, `RESOLVED`, `CLOSED`, and `REOPENED`.
-3. **Mandatory Resolution Notes**: No ticket can be closed without an explicit, recorded resolution description detailing the corrective actions taken.
-4. **Structured Unresolved Justifications**: If a department encounters budget, vendor, or technical barriers, it must file a 5-point formal justification audited by the Principal.
+---
+
+## 🏛️ Problem Statement & System Overview
+
+In traditional college campuses, maintenance, administrative, financial, and academic issues are reported through informal emails, WhatsApp messages, paper chits, and verbal requests. This results in:
+- **Lost and Unaddressed Complaints**: No formal tracking or status accountability.
+- **Delayed Turnaround Times**: Issues bounce between departments without ownership.
+- **Lack of Institutional Transparency**: Students and faculty have no visibility into issue progress.
+- **Zero Executive Visibility**: College Principals and Deans lack unified metrics on campus infrastructure health and department resolution performance.
+
+### The Solution
+This platform establishes a **centralized, transparent, and immutable digital workflow**:
+1. **Automated Category Routing**: Issue categories (*Wi-Fi / Internet*, *Fee Payment*, *Classroom Maintenance*, *Course Registration*) map directly to responsible departments (*IT*, *Finance*, *Infrastructure*, *Academics*).
+2. **Transparent Ticket Lifecycle**: Full status management through `NEW`, `IN_PROGRESS`, `WAITING_FOR_INFO`, `ON_HOLD`, `RESOLVED`, `CLOSED`, and `REOPENED`.
+3. **Mandatory Resolution Accountability**: Department administrators cannot resolve tickets without entering detailed resolution descriptions.
+4. **Structured Unresolved Justifications**: If budget constraints, vendor delays, or administrative barriers prevent resolution, departments must submit a formal 5-point justification reviewed by the Principal.
 5. **Supervisor Executive Oversight**: The Principal has college-wide read access to audit all tickets, departments, and 7 live Recharts analytics dashboards, while **backend APIs strictly block mutations with HTTP 403 Forbidden**.
+
+---
+
+## 🏗️ System Architecture
+
+The application is deployed across modern cloud infrastructure with complete decoupling of client presentation, API processing, and managed persistence.
+
+![System Architecture](project_documentation/System_Architecture.png)
+
+### Architectural Flow
+1. **Vercel Edge Network**: Delivers the compiled React + Vite SPA with global CDN caching and client-side SPA routing rewrites.
+2. **Render Web Service**: Runs an asynchronous FastAPI backend under Uvicorn, binding to `0.0.0.0` and dynamic cloud ports with CORS middleware.
+3. **Managed PostgreSQL**: Hosts relational tables with foreign keys, composite indexes, connection pooling (`pool_recycle=300`, `pool_pre_ping=True`), and Alembic version-controlled migrations.
 
 ---
 
 ## 💻 Technology Stack
 
-| Layer | Technology | Details |
-|---|---|---|
-| **Frontend** | React 18, Vite | High-performance Single Page Application (SPA) |
-| **Styling** | Tailwind CSS | Modern, responsive utility design with dark/light contrasts |
-| **Visualizations** | Recharts | 7 dynamic visualizations (Donut, Bar, Stacked Bar, Line, Pie) |
-| **HTTP Client** | Axios | Configured with automatic Bearer JWT auth interceptors |
-| **Routing** | React Router v6 | Role-based protected routes and layout nesting |
-| **Backend** | FastAPI (Python 3.11) | High-performance asynchronous REST API framework |
-| **Data Access** | SQLAlchemy 2.0 ORM | Relationship modeling, composite indexes, connection pooling |
-| **Validation** | Pydantic v2 | Strict request/response schema serialization |
-| **Security** | OAuth2 + JWT + Bcrypt | Secure token generation, salted password hashing, RBAC dependencies |
-| **Database** | PostgreSQL | Relational constraints, foreign keys, index optimization (SQLite fallback in test) |
+### Frontend
+- **Framework**: React 18 (Vite SPA)
+- **Styling**: Tailwind CSS with dark/light visual contrast and custom badges
+- **Routing**: React Router v6 with declarative role-based route guards
+- **Data Visualizations**: Recharts (Donut, Bar, Stacked Bar, Line, Pie charts)
+- **HTTP Client**: Axios with automatic Bearer JWT injection and 401 interceptors
+- **Icons**: Lucide React
+
+### Backend
+- **Framework**: FastAPI (Python 3.11) with async routing
+- **ORM / Persistence**: SQLAlchemy 2.0 with connection pooling and PostgreSQL dialects
+- **Migrations**: Alembic with auto-upgrade on startup
+- **Database Driver**: `psycopg2-binary` (enforced via `postgresql+psycopg2://` driver scheme)
+- **Validation & Serialization**: Pydantic v2 schemas
+- **Security & Cryptography**: OAuth2 Password Bearer, PyJWT (HS256), Passlib (Bcrypt hashing)
+- **Server**: Uvicorn ASGI Server
 
 ---
 
 ## 👥 User Roles & Permissions Matrix
 
+![Role-Based Access Flowchart](project_documentation/Role_Based_Access_Flowchart.png)
+
 ### 1. Student / Faculty / Staff (Reporter)
-- **Secure Authentication**: Dedicated reporter dashboard and portal.
-- **Issue Submission Wizard**: 3-step structured submission with category auto-routing preview, subcategories, title, description, and priority level (*Low*, *Medium*, *High*, *Critical*).
+- **Scoped Portal**: Submits new issues through a 3-step structured wizard with category auto-routing preview.
 - **Ticket Tracking**: Real-time progress monitoring, assigned department visibility, and SLA tracking.
-- **Two-Way Communication**: Exchange comments with assigned departments and answer information requests.
-- **Issue Reopening**: Can reopen resolved or closed tickets if the problem recurs or is unsatisfactory.
-- **Data Boundary**: Strictly isolated to their own submitted tickets.
+- **Two-Way Communication**: Post comments and provide additional information requested by department officers.
+- **Issue Reopening**: Can reopen resolved tickets if the problem reoccurs or was unsatisfactorily handled.
+- **Data Boundary**: Isolated strictly to their own submitted tickets.
 
 ### 2. Department Administrator (Category Owner)
-- **Scoped Queue Management**: Department-specific dashboard displaying *New*, *In Progress*, *Waiting for Info*, *On Hold*, *Resolved*, and *Overdue* tickets.
-- **Status Workflow**:
+- **Department Queue**: Manages department-specific ticket queues (*New*, *In Progress*, *Waiting for Info*, *On Hold*, *Resolved*, *Overdue*).
+- **Workflow Actions**:
   - *Start Work*: Transitions ticket to `IN_PROGRESS`.
-  - *Request Information*: Queries reporter for details; sets status to `WAITING_FOR_INFO`.
-  - *Place On Hold*: Pauses ticket with mandatory recorded reason.
-  - *Resolve Ticket*: Requires mandatory resolution description (minimum 10 characters).
-  - *Cannot Resolve*: Submits formal 5-point justification to the Principal.
-- **Internal Staff Notes**: Post private internal notes invisible to reporters.
-- **Data Boundary**: Isolated to their assigned department. Cannot access or modify tickets of other departments.
+  - *Request Information*: Prompts reporter for details; sets status to `WAITING_FOR_INFO`.
+  - *Place On Hold*: Temporarily pauses SLA with mandatory recorded reason.
+  - *Resolve Ticket*: Requires mandatory resolution notes (minimum 10 characters).
+  - *Formal Justification*: Submits structured justification to the Principal if resolution is blocked.
+- **Internal Staff Notes**: Post private internal remarks invisible to the reporter.
+- **Data Boundary**: Isolated to their assigned department. Cannot modify other departments' tickets.
 
-### 3. Principal (College-wide Supervisor)
-- **Supervisor Oversight**: Centralized executive dashboard across all departments and campus operations.
-- **Read-Only Enforcement**: Can inspect all tickets, status history, and comments, but **backend APIs strictly reject any create, update, assign, or delete operations with HTTP 403 Forbidden**.
-- **7 Live Interactive Analytics Visualizations**:
+### 3. Principal (College-Wide Executive Supervisor)
+- **Executive Oversight**: Centralized bird's-eye view across all departments, categories, and campus tickets.
+- **Read-Only Enforcement**: Can inspect all tickets, status history, justifications, and comments, but **backend APIs strictly reject any create, update, assign, or delete mutations with HTTP 403 Forbidden**.
+- **7 Live Interactive Analytics Dashboards**:
   1. *Resolution Overview*: Donut chart (Resolved vs In Progress vs On Hold vs Pending).
-  2. *Issues by Department*: Bar chart comparing departmental volume.
+  2. *Issues by Department*: Bar chart comparing departmental workload.
   3. *Issue Trends*: 30-day reporting volume line chart.
   4. *Most Reported Categories*: Horizontal bar chart identifying frequent complaints.
   5. *Department-wise Ticket Status*: Stacked bar chart comparing resolution status per department.
   6. *Average Resolution Time*: Performance benchmark across departments.
   7. *Priority Distribution*: Donut chart showing ticket severity breakdown.
-- **Formal Justifications Registry**: Review all unresolved roadblock justifications.
+- **Formal Justifications Audit**: Dedicated interface reviewing unresolved roadblock justifications.
 - **Audit CSV Exports**: Download role-filtered CSV reports.
 
 ---
 
-## 🔑 User Personas & Development Roles
+## 🔄 Ticket Lifecycle & Workflow
 
-The database supports authorized accounts representing all campus personas:
+The platform maintains a deterministic state machine for ticket transitions with full historical auditing.
 
-| Role | Name | Email | Assigned Department / Scope |
-|---|---|---|---|
-| **Principal** | Dr. Arthur Pendelton | `principal@college.edu` | Institutional Supervisor (Read-Only) |
-| **IT Admin** | Rajesh Sharma | `it.admin@college.edu` | IT Administration |
-| **Finance Admin** | Priya Sundaram | `finance.admin@college.edu` | Finance Department |
-| **Infra Admin** | Vikram Singh | `infra.admin@college.edu` | Infrastructure and Maintenance |
-| **Academics Admin** | Dr. Meenakshi Iyer | `academics.admin@college.edu` | Academics Department |
-| **Hostel Admin** | Rakesh Verma | `hostel.admin@college.edu` | Hostel Facilities |
-| **Student Reporter** | Alex Rivera | `student.alex@college.edu` | Student Body |
-| **Faculty Reporter** | Prof. Sarah Jenkins | `faculty.sarah@college.edu` | Faculty Body |
-| **Staff Reporter** | David Miller | `staff.david@college.edu` | Administrative Staff |
+![Ticket Workflow](project_documentation/Ticket_Workflow.png)
 
-> [!NOTE]
-> In local development environments, initial test credentials can be initialized via `seed.py`. In production deployments, demo accounts and test credentials are automatically deactivated; accounts must be created and authenticated using secure institutional credentials and strong passwords.
+```
+[ NEW ] ─────────────────────────► [ IN_PROGRESS ] ──────────────► [ RESOLVED ] ────► [ CLOSED ]
+   │                                     ▲   │                           ▲
+   │                                     │   │                           │
+   ├──► [ WAITING_FOR_INFO ] ────────────┤   └──► [ ON_HOLD ] ───────────┘
+   │            │                        │              │
+   │            └────────────────────────┘              │
+   │                                                    ▼
+   └──────────────────────────────────────────► [ UNRESOLVED JUSTIFICATION ]
+                                                        ▲
+[ REOPENED ] ◄──────────────────────────────────────────┘
+```
+
+Every status transition records:
+- Timestamp (UTC)
+- Actor ID & Full Name
+- Previous Status & New Status
+- Reason / Transition Note
 
 ---
 
-## 🚀 Quick Start Guide
+## 🗄️ Database Design
 
-### Option A: Windows PowerShell (Recommended)
-From the project root directory, run:
-```powershell
-.\start.ps1
-```
-The script will verify Python and Node.js, run database master seeding, start the FastAPI backend on port 8000, and launch the Vite dev server on port 5174.
+The database schema is normalized and indexed for relational integrity, query performance, and audit compliance.
 
-### Option B: Windows Command Prompt
-```cmd
-start.bat
-```
+![Database ER Diagram](project_documentation/Database_ER_Diagram.png)
 
-### Option C: Linux / macOS (Bash)
+### Key Entities
+- **`users`**: User identity, hashed passwords, department affiliation, and foreign key to `roles`.
+- **`roles`**: System roles (`reporter`, `department_admin`, `principal`).
+- **`departments`**: Academic and administrative departments (IT, Finance, Infra, Academics, Library, Hostel, Transport, HR).
+- **`categories`**: Top-level issue categories linked directly to a target `department_id`.
+- **`subcategories`**: Granular classifications under each category.
+- **`tickets`**: Core ticket record with generated sequence numbers (`COL-YYYY-NNNN`), title, description, priority enum, status enum, SLA timestamps, and resolution notes.
+- **`ticket_comments`**: Public communications and private internal notes.
+- **`ticket_status_history`**: Immutable transition audit log.
+- **`ticket_justifications`**: 5-point formal justifications for unresolved tickets.
+
+---
+
+## 📸 Visual Assets & Documentation
+
+All architectural and database diagrams are maintained in `project_documentation/`:
+
+| Diagram | Description | File |
+|---|---|---|
+| **System Architecture** | Cloud deployment architecture and network tiers | [`project_documentation/System_Architecture.png`](project_documentation/System_Architecture.png) |
+| **Ticket Workflow** | State transition machine and SLA pathways | [`project_documentation/Ticket_Workflow.png`](project_documentation/Ticket_Workflow.png) |
+| **Role-Based Access** | Security boundary flowchart across roles | [`project_documentation/Role_Based_Access_Flowchart.png`](project_documentation/Role_Based_Access_Flowchart.png) |
+| **Database ERD** | Entity-Relationship diagram with relationships | [`project_documentation/Database_ER_Diagram.png`](project_documentation/Database_ER_Diagram.png) |
+
+---
+
+## 🛠️ Local Installation & Setup
+
+### Prerequisites
+- Python 3.10+
+- Node.js 18+ and npm
+- PostgreSQL 14+ (or SQLite for local testing)
+- Git
+
+### 1. Clone the Repository
 ```bash
-chmod +x start.sh
-./start.sh
+git clone https://github.com/varshini200502/college-issue-management.git
+cd college-issue-management
 ```
 
----
-
-## 🗄️ PostgreSQL Production Configuration
-
-1. Install PostgreSQL 14+ on your system or server.
-2. Create the production database and user:
-   ```sql
-   CREATE DATABASE college_issue_db;
-   CREATE USER college_user WITH ENCRYPTED PASSWORD 'YOUR_STRONG_PASSWORD';
-   GRANT ALL PRIVILEGES ON DATABASE college_issue_db TO college_user;
-   ```
-3. Copy `backend/.env.example` to `backend/.env`:
-   ```bash
-   cp backend/.env.example backend/.env
-   ```
-4. Configure your `DATABASE_URL` in `backend/.env`:
-   ```ini
-   DATABASE_URL="postgresql://college_user:YOUR_STRONG_PASSWORD@localhost:5432/college_issue_db"
-   ```
-5. Run the master data seeder:
-   ```bash
-   cd backend
-   python seed.py
-   ```
-   *(By default, `seed.py` creates master data, test login accounts, and exactly 2 initial demonstration tickets: `COL-2026-0001` in IT Administration with status `IN_PROGRESS`, and `COL-2026-0002` in Finance with status `RESOLVED` and explicit resolution notes).*
-
----
-
-## 🧪 Automated Backend Test Suite
-
-To verify all security restrictions, RBAC guards, and routing algorithms:
+### 2. Backend Setup
 ```bash
 cd backend
+
+# Create and activate virtual environment
+python -m venv venv
+# Windows:
+venv\Scripts\activate
+# Linux/macOS:
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment variables
+cp .env.example .env
+# Edit .env with your local database URL and random SECRET_KEY
+
+# Run database migrations
+alembic upgrade head
+
+# Seed initial master data, roles, and sample tickets
+python seed.py
+
+# Start development server
+uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+Backend API will be accessible at `http://127.0.0.1:8000`. Swagger documentation is available at `http://127.0.0.1:8000/docs`.
+
+### 3. Frontend Setup
+```bash
+cd ../frontend
+
+# Install dependencies
+npm install
+
+# Configure environment variables
+cp .env.example .env
+# Set VITE_API_BASE_URL="http://localhost:8000"
+
+# Start Vite dev server
+npm run dev
+```
+Frontend will be available at `http://localhost:5174`.
+
+### 4. Running the Automated Test Suite
+From the `backend` directory:
+```bash
 python test_suite.py
 ```
-
-Expected output:
-```text
-Ran 9 tests in 4.285s
-OK
-[PASS] 01: All sample user accounts and bcrypt credentials verified.
-[PASS] 02: Ticket COL-2026-0001 created and automatically routed to IT Administration.
-[PASS] 03: Status transitioned to IN_PROGRESS and audit trail recorded.
-[PASS] 04: Mandatory resolution description validated.
-[PASS] 05: Department isolation verified: Finance Admin cannot modify IT tickets.
-[PASS] 06: Unresolved issue formal justification submitted, linked, and status updated.
-[PASS] 07: Principal backend mutation restriction strictly enforced (403 Forbidden).
-[PASS] 08: Principal real-time analytics aggregation and visualization data verified.
-[PASS] 09: Role-filtered CSV exports verified.
-```
+This executes the 9-point integration test suite verifying authentication, ticket creation, department routing, resolution enforcement, role isolation, formal justifications, principal 403 restrictions, analytics aggregation, and CSV exports.
 
 ---
 
-## 📁 Project Structure
+## 🔒 Security & Deployment Safeguards
 
-```
-college-issue-management/
-├── .env.example                    # Environment variable template
-├── README.md                       # Comprehensive system documentation
-├── start.ps1                       # Windows PowerShell startup automation
-├── start.sh                        # Linux / macOS bash startup automation
-├── start.bat                       # Windows CMD startup launcher
-│
-├── backend/                        # FastAPI Backend Application
-│   ├── app/
-│   │   ├── api/                    # REST API Endpoints
-│   │   │   ├── auth.py             # Login, register, token, /me
-│   │   │   ├── tickets.py          # CRUD, routing, status, comments, justifications
-│   │   │   ├── analytics.py        # Principal & Department Recharts aggregations
-│   │   │   ├── departments.py      # Department directory
-│   │   │   ├── categories.py       # Category & subcategory routing rules
-│   │   │   ├── reports.py          # Scoped CSV export
-│   │   │   └── notifications.py    # In-app notification center
-│   │   ├── core/                   # Security, DB session, RBAC dependencies
-│   │   │   ├── config.py           # Environment settings
-│   │   │   ├── database.py         # SQLAlchemy engine & session maker
-│   │   │   ├── security.py         # JWT tokens & Bcrypt hashing
-│   │   │   └── dependencies.py     # block_principal_mutation & role guards
-│   │   ├── models/                 # SQLAlchemy Relational Models
-│   │   ├── schemas/                # Pydantic v2 Request/Response Schemas
-│   │   └── services/               # Core Business Logic & Routing Engines
-│   ├── seed.py                     # Master database initializer
-│   ├── reset_tickets.py            # Development ticket reset utility
-│   ├── test_suite.py               # 9-point automated regression test suite
-│   └── requirements.txt            # Python dependencies
-│
-├── frontend/                       # React 18 + Vite Frontend Application
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── charts/             # Recharts visualizations (Donut, Bar, Trends...)
-│   │   │   ├── common/             # Navbar, Sidebar, Modal, Badges, Toast, FilterBar
-│   │   │   └── tickets/            # TicketTimeline, CommentThread, JustificationCard
-│   │   ├── context/                # AuthContext & NotificationContext
-│   │   ├── pages/
-│   │   │   ├── Login.jsx           # Institutional login with demo account selector
-│   │   │   ├── reporter/           # ReporterDashboard, RaiseTicket, TicketList, TicketDetail
-│   │   │   ├── dept/               # DeptDashboard, DeptTicketList, DeptTicketDetail
-│   │   │   └── principal/          # PrincipalDashboard, TicketList, TicketDetail, Justifications
-│   │   ├── services/               # Axios API abstraction services
-│   │   ├── App.jsx                 # Main Router with role-based Route Guards
-│   │   └── main.jsx                # Application Entrypoint
-│   └── package.json
-│
-└── project_documentation/          # Architecture Diagrams & Presentation Assets
-    ├── System_Architecture.png     # 3-tier enterprise architecture diagram
-    ├── Ticket_Workflow.png         # State transition lifecycle machine diagram
-    ├── Role_Based_Access_Flowchart.png # RBAC permissions matrix diagram
-    ├── Database_ER_Diagram.png     # PostgreSQL schema entity relationship diagram
-    ├── College_Ticket_Management_Presentation.docx # 10-slide executive Word presentation
-    ├── College_Ticket_Management_Presentation.html # Interactive HTML presentation slide deck
-    └── generate_docs.py            # Diagram & presentation generation script
-```
+- **Zero Secret Commits**: Real `.env` files, credentials, and tokens are strictly excluded by `.gitignore`. Templates are maintained in `.env.example`.
+- **No SQLite in Production**: `backend/app/core/database.py` contains runtime guards that disallow SQLite and localhost fallback in production environments.
+- **Production Demo Accounts Disabled**: Demo credential helpers on the login page are conditionally compiled only in `import.meta.env.DEV` and automatically stripped from production builds.
+- **CORS Protection**: Backends enforce explicit origin validation including production Vercel domains and reject unauthorized origins.
+- **Idempotent Seeding**: `seed.py` checks existing records before insertion, ensuring subsequent startups never create duplicate records.
 
 ---
 
-## 🛡️ Security & Architectural Highlights
-
-- **Backend Enforcement of Read-Only Principal**: While the frontend omits edit buttons, the backend API route handlers actively execute the `block_principal_mutation` dependency. Any direct `POST`, `PATCH`, or `PUT` request containing a Principal JWT token is immediately rejected with `403 Forbidden`.
-- **Department Queue Isolation**: Department administrators are restricted via SQLAlchemy query filters to `department_id == user.department_id`. Cross-department updates trigger immediate `403 Forbidden` errors.
-- **Zero-Trust Input Validation**: Pydantic v2 validates all payloads (resolution notes min 10 chars, justifications min 20 chars).
-- **Stateless Bearer JWT**: Secure token generation with HMAC-SHA256 signature and 24-hour expiration.
-
----
-
-## 📄 License & Institutional Credits
-
-Developed for academic institution campus operations and management. Released under the MIT License.
+## 📄 License
+This project is developed for institutional ticket and issue governance. All rights reserved.
