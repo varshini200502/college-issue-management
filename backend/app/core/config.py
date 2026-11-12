@@ -35,12 +35,17 @@ class Settings:
     # Database URL
     _raw_db_url: str = os.getenv(
         "DATABASE_URL",
-        "postgresql://postgres:postgres@localhost:5432/college_issue_db"
+        "postgresql+psycopg2://postgres:postgres@localhost:5432/college_issue_db"
     )
     
-    # Render and cloud PostgreSQL URLs start with 'postgres://', which SQLAlchemy requires to be 'postgresql://'
+    # Render and cloud PostgreSQL URLs start with 'postgres://' or bare 'postgresql://'
+    # In SQLAlchemy 2.0+, bare 'postgresql://' defaults to the psycopg (v3) driver, which
+    # fails with ModuleNotFoundError: No module named 'psycopg' if only psycopg2-binary is installed.
+    # We explicitly map both 'postgres://' and bare 'postgresql://' to 'postgresql+psycopg2://'
     if _raw_db_url.startswith("postgres://"):
-        _raw_db_url = _raw_db_url.replace("postgres://", "postgresql://", 1)
+        _raw_db_url = _raw_db_url.replace("postgres://", "postgresql+psycopg2://", 1)
+    elif _raw_db_url.startswith("postgresql://") and not _raw_db_url.startswith("postgresql+"):
+        _raw_db_url = _raw_db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
     DATABASE_URL: str = _raw_db_url
 
     # CORS Configuration

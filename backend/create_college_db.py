@@ -181,7 +181,7 @@ def main():
     print()
     print(f"[*] Next steps:")
     print(f"    1. In Render → college-issue-backend → Environment, set:")
-    print(f"       DATABASE_URL = postgresql://{connected_user}:***@{connected_host}:5432/{TARGET_DB}?sslmode=require")
+    print(f"       DATABASE_URL = postgresql+psycopg2://{connected_user}:***@{connected_host}:5432/{TARGET_DB}?sslmode=require")
     print(f"    2. Deploy the backend (Alembic runs automatically in the build command).")
     print(f"    3. In the Render Shell, run:  python seed.py")
     print()
