@@ -1,7 +1,10 @@
 import axios from 'axios';
 
-// Resolve API base URL: Priority to VITE_API_BASE_URL, fallback to VITE_API_URL or '/api' for Vite dev proxy
-const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '/api';
+// Resolve API base URL: Priority to VITE_API_BASE_URL, fallback to VITE_API_URL or production live Render backend
+const LIVE_BACKEND_URL = 'https://college-issue-backend-t72o.onrender.com';
+const rawBaseUrl = import.meta.env.VITE_API_BASE_URL 
+  || import.meta.env.VITE_API_URL 
+  || (import.meta.env.PROD ? LIVE_BACKEND_URL : '/api');
 const trimmedBase = rawBaseUrl.trim().replace(/\/+$/, '');
 const baseURL = (trimmedBase.endsWith('/api') || trimmedBase === '/api')
   ? trimmedBase

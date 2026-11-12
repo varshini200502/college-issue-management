@@ -49,8 +49,9 @@ class Settings:
     DATABASE_URL: str = _raw_db_url
 
     # CORS Configuration
-    # Local dev defaults
+    # Local dev defaults and Vercel production domains
     _default_origins = [
+        "https://college-issue-management.vercel.app",
         "http://localhost:5174",
         "http://127.0.0.1:5174",
         "http://localhost:5173",
