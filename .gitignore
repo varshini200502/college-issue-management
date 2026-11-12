@@ -1,0 +1,66 @@
+# Environment variables and secrets (Strictly excluded from Git)
+.env
+*.env
+*.env.*
+*.env.local
+backend/.env
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+!.env.example
+!*.env.example
+!backend/.env.example
+!frontend/.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+*.db
+*.sqlite
+*.sqlite3
+*.egg-info/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+.mpl_cache/
+*/.mpl_cache/
+
+# Local File Uploads & Ephemeral Storage
+uploads/
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Node / Frontend Build Outputs
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+dist-ssr/
+*.local
+.vercel/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE & Editor Configs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS Metadata
+.DS_Store
+Thumbs.db
+desktop.ini
